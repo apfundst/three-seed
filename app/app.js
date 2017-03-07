@@ -8,13 +8,14 @@
 
 import Renderer from './Renderer/EffectRenderer';
 import RendererStore from './stores/RendererStore';
-import { Scene, PerspectiveCamera, PCFSoftShadowMap } from 'three';
+import { Scene, PerspectiveCamera, PCFSoftShadowMap, MeshDepthMaterial, RGBADepthPacking, LinearFilter, NoBlending, WebGLRenderTarget } from 'three';
 import * as THREE from 'three'; // used for Orbit Controls
 import Bunny from './objects/StanfordBunny/Bunny.js';
 import BasicLights from './objects/BasicLights';
 import { ShaderPass, RenderPass } from './Renderer/EffectRenderer';
 import { FXAAShader } from './Shaders/fxaa/fxaa';
 import { TestShader } from './Shaders/test/test';
+import { SSAOShader } from './Shaders/ssao/ssao';
 
 const scene = new Scene();
 const camera = new PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
@@ -26,6 +27,26 @@ const c2 = new ShaderPass(TestShader);
 const c3 = new ShaderPass(TestShader);
 const c4 = new ShaderPass(TestShader);
 const c5 = new ShaderPass(TestShader);
+
+// SSA
+const SSAO = new ShaderPass(SSAOShader);
+const depthMaterial = new MeshDepthMaterial();
+const depthRenderTarget = new WebGLRenderTarget(window.innerWidth * 2, window.innerHeight * 2, { minFilter: LinearFilter, magFilter: LinearFilter });
+
+depthMaterial.depthPacking = RGBADepthPacking;
+depthMaterial.blending = NoBlending;
+
+SSAO.uniforms.tDepth.value = depthRenderTarget.texture;
+SSAO.uniforms.size.value.set(window.innerWidth * 2, window.innerHeight * 2);
+SSAO.uniforms.cameraNear.value = camera.near;
+SSAO.uniforms.cameraFar.value = camera.far;
+SSAO.uniforms.onlyAO.value = true;
+
+rPass.preRenderCallback = () => {
+  scene.overrideMaterial = depthMaterial;
+  renderer.renderer.render(scene, camera, depthRenderTarget, true);
+  scene.overrideMaterial = null;
+};
 
 // Post processing
 renderer.addPass(rPass);
@@ -51,8 +72,8 @@ c1.uniforms.CENTRE.value.set(256 * 2, 256);
 
 renderer.addPass(c1);
 
-FXAA.renderToScreen = true;
-renderer.addPass(FXAA);
+SSAO.renderToScreen = true;
+renderer.addPass(SSAO);
 
 RendererStore.addChangeListener( (d)=>{
   const { width, height, resolution } = d;
