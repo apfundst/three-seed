@@ -20,6 +20,7 @@ import { SSAOShader } from './Shaders/ssao/ssao';
 const scene = new Scene();
 const camera = new PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
 const renderer = new Renderer({antialias: false}, scene, camera);
+// Post processing
 const rPass = new RenderPass(scene, camera);
 const FXAA = new ShaderPass(FXAAShader);
 const c1 = new ShaderPass(TestShader);
@@ -32,27 +33,30 @@ const c5 = new ShaderPass(TestShader);
 const SSAO = new ShaderPass(SSAOShader);
 const depthMaterial = new MeshDepthMaterial();
 const depthRenderTarget = new WebGLRenderTarget(window.innerWidth * 2, window.innerHeight * 2, { minFilter: LinearFilter, magFilter: LinearFilter });
+const SSAORenderPass = new RenderPass(scene, camera);
 
 depthMaterial.depthPacking = RGBADepthPacking;
 depthMaterial.blending = NoBlending;
+
+SSAORenderPass.overrideMaterial = depthMaterial;
+SSAORenderPass.overrideTarget = depthRenderTarget;
 
 SSAO.uniforms.tDepth.value = depthRenderTarget.texture;
 SSAO.uniforms.size.value.set(window.innerWidth * 2, window.innerHeight * 2);
 SSAO.uniforms.cameraNear.value = camera.near;
 SSAO.uniforms.cameraFar.value = camera.far;
-// SSAO.uniforms.onlyAO.value = true;
+SSAO.uniforms.onlyAO.value = true;
 
-rPass.preRenderCallback = () => {
-  scene.overrideMaterial = depthMaterial;
-  renderer.renderer.render(scene, camera, depthRenderTarget, true);
-  scene.overrideMaterial = null;
-};
+// render SSAO depth
+renderer.addPass(SSAORenderPass);
 
-// Post processing
+// render the scene
 renderer.addPass(rPass);
 
-FXAA.uniforms.resolution.value.set(window.innerWidth * 2, window.innerHeight * 2)
+// render the ambient occ
+renderer.addPass(SSAO);
 
+// Mess about with GLSL stacking
 renderer.addPass(c5);
 
 c4.uniforms.COLOR.value.set(0xFF00FF);
@@ -72,16 +76,19 @@ c1.uniforms.CENTRE.value.set(256 * 2, 256);
 
 renderer.addPass(c1);
 
-SSAO.renderToScreen = true;
-renderer.addPass(SSAO);
+// Anti Alias
+FXAA.uniforms.resolution.value.set(window.innerWidth * 2, window.innerHeight * 2);
+FXAA.renderToScreen = true;
+renderer.addPass(FXAA);
 
+// Resize passes
 RendererStore.addChangeListener( (d)=>{
   const { width, height, resolution } = d;
   // set camera
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   // update the FXAA pass
-  renderer.passes[6].uniforms.resolution.value.set(width * resolution, height * resolution);
+  // renderer.passes[6].uniforms.resolution.value.set(width * resolution, height * resolution);
 
 } );
 const OrbitControls = require('three-orbit-controls')(THREE)

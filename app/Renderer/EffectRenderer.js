@@ -216,13 +216,16 @@ export class RenderPass {
     this.enabled = true;
     this.clear = true;
     this.needsSwap = false;
-    this.preRenderCallback = () => {}
+    this.overrideMaterial = null;
+    this.overrideTarget = null;
+    // this.preRenderCallback = () => {}
   }
   render(renderer, writeBuffer, readBuffer) {
+    const target = this.overrideTarget || readBuffer;
     // console.log('RenderPass into ReadBuffer', readBuffer.uuid);
-    this.preRenderCallback(); // i think I can do another render pass with an override material rather than the callback
+    // this.preRenderCallback(); // i think I can do another render pass with an override material rather than the callback
     this.scene.overrideMaterial = this.overrideMaterial;
-    renderer.render(this.scene, this.camera, readBuffer, this.clear);
+    renderer.render(this.scene, this.camera, target, this.clear);
     this.scene.overrideMaterial = null;
   }
 }
