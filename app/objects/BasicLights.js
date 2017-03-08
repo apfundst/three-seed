@@ -1,5 +1,6 @@
 import { Group, SpotLight, PointLight } from 'three';
-import TWEEN, { Linear } from 'gsap';
+import AnimationStore from '../stores/AnimationStore';
+
 export default class BasicLights extends Group {
   constructor(...args) {
     super(...args);
@@ -19,9 +20,14 @@ export default class BasicLights extends Group {
     dir.shadow.camera.far = 10;
     dir.shadow.camera.fov = 40;
 
-    point.position.set(0, 0.1, 1);
-
-    TWEEN.fromTo(point.position, 4, {x: -2}, {x: 2, yoyo: true, repeat: -1, ease: Linear.easeNone});
+    AnimationStore.addChangeListener( (d)=>{
+      const { startTime, currentTime } = d;
+      const delta = (currentTime - startTime) / 1000;
+      const r = 2;
+      const x = r * Math.cos( delta );
+      const z = r * Math.sin( delta );
+      point.position.set(x, 0.5, z);
+    });
 
     this.add(point, dir);
   }

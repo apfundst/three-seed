@@ -40,7 +40,7 @@ SSAO.uniforms.tDepth.value = depthRenderTarget.texture;
 SSAO.uniforms.size.value.set(window.innerWidth * 2, window.innerHeight * 2);
 SSAO.uniforms.cameraNear.value = camera.near;
 SSAO.uniforms.cameraFar.value = camera.far;
-SSAO.uniforms.onlyAO.value = true;
+// SSAO.uniforms.onlyAO.value = true;
 
 rPass.preRenderCallback = () => {
   scene.overrideMaterial = depthMaterial;
