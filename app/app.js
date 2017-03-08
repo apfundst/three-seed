@@ -12,7 +12,7 @@ import { Scene, PerspectiveCamera, PCFSoftShadowMap, MeshDepthMaterial, RGBADept
 import * as THREE from 'three'; // used for Orbit Controls
 import Bunny from './objects/StanfordBunny/Bunny.js';
 import BasicLights from './objects/BasicLights';
-import { ShaderPass, RenderPass } from './Renderer/EffectRenderer';
+import { ShaderPass, RenderPass, CopyShader } from './Renderer/EffectRenderer';
 import { FXAAShader } from './Shaders/fxaa/fxaa';
 import { TestShader } from './Shaders/test/test';
 import { SSAOShader } from './Shaders/ssao/ssao';
@@ -33,6 +33,7 @@ const c2 = new ShaderPass(TestShader);
 const c3 = new ShaderPass(TestShader);
 const c4 = new ShaderPass(TestShader);
 const c5 = new ShaderPass(TestShader);
+const copyPass = new ShaderPass(CopyShader);
 
 // SSA
 const SSAO = new ShaderPass(SSAOShader);
@@ -81,8 +82,10 @@ renderer.addPass(c1);
 
 // Anti Alias
 FXAA.uniforms.resolution.value.set(window.innerWidth * 2, window.innerHeight * 2);
-FXAA.renderToScreen = true;
 renderer.addPass(FXAA);
+
+copyPass.renderToScreen = true;
+renderer.addPass(copyPass);
 
 // Resize passes
 RendererStore.addChangeListener( (d)=>{

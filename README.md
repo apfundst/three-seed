@@ -2,9 +2,8 @@
 
 This seed is designed to bootstrap your Three.js development with modern tooling, technology and project organisation.
 
-## TODO
-* Add GLSL loaders and example
-* Add await, async with fileLoader examples
+## Renderers
+There are two renderers included in the seed. One uses Post Proccessing, the other doesn't.
 
 ## npm scripts
 

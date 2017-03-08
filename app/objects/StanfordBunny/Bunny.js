@@ -24,7 +24,7 @@ export default class extends Group {
     const geometry = await loadModel(BUNNYMODEL, this.loadingFunction);
     console.log('Loading brick textures');
     const brickTextures = await loadTextureSet([BUMP, DIFFUSE, ROUGH], this.loadingFunction);
-    console.log('Done loading')
+    console.log('Done loading');
     const material = new MeshStandardMaterial();
     const bunny = new Mesh(geometry, material);
     const getTexture = (url) => {
@@ -46,6 +46,7 @@ export default class extends Group {
     });
     const plane = new Mesh(planeGeo, planeMaterial);
 
+    geometry.computeVertexNormals();
     bunny.castShadow = true;
     plane.receiveShadow = true;
     bunny.position.x = 1.2 / -2;
