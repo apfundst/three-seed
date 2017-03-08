@@ -17,9 +17,14 @@ import { FXAAShader } from './Shaders/fxaa/fxaa';
 import { TestShader } from './Shaders/test/test';
 import { SSAOShader } from './Shaders/ssao/ssao';
 
+// scene
 const scene = new Scene();
 const camera = new PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
 const renderer = new Renderer({antialias: false}, scene, camera);
+const OrbitControls = require('three-orbit-controls')(THREE);
+const Bunnies = new Bunny();
+const Lights = new BasicLights();
+
 // Post processing
 const rPass = new RenderPass(scene, camera);
 const FXAA = new ShaderPass(FXAAShader);
@@ -32,7 +37,7 @@ const c5 = new ShaderPass(TestShader);
 // SSA
 const SSAO = new ShaderPass(SSAOShader);
 const depthMaterial = new MeshDepthMaterial();
-const depthRenderTarget = new WebGLRenderTarget(window.innerWidth * 2, window.innerHeight * 2, { minFilter: LinearFilter, magFilter: LinearFilter });
+const depthRenderTarget = new WebGLRenderTarget(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio, { minFilter: LinearFilter, magFilter: LinearFilter });
 const SSAORenderPass = new RenderPass(scene, camera);
 
 depthMaterial.depthPacking = RGBADepthPacking;
@@ -42,10 +47,9 @@ SSAORenderPass.overrideMaterial = depthMaterial;
 SSAORenderPass.overrideTarget = depthRenderTarget;
 
 SSAO.uniforms.tDepth.value = depthRenderTarget.texture;
-SSAO.uniforms.size.value.set(window.innerWidth * 2, window.innerHeight * 2);
+SSAO.uniforms.size.value.set(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio);
 SSAO.uniforms.cameraNear.value = camera.near;
 SSAO.uniforms.cameraFar.value = camera.far;
-SSAO.uniforms.onlyAO.value = true;
 
 // render SSAO depth
 renderer.addPass(SSAORenderPass);
@@ -73,7 +77,6 @@ renderer.addPass(c2);
 
 c1.uniforms.COLOR.value.set(0x00FFFF);
 c1.uniforms.CENTRE.value.set(256 * 2, 256);
-
 renderer.addPass(c1);
 
 // Anti Alias
@@ -87,13 +90,9 @@ RendererStore.addChangeListener( (d)=>{
   // set camera
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  // update the FXAA pass
-  // renderer.passes[6].uniforms.resolution.value.set(width * resolution, height * resolution);
-
+  SSAO.uniforms.size.value.set(width * resolution, height * resolution);
+  FXAA.uniforms.resolution.value.set(width * resolution, height * resolution);
 } );
-const OrbitControls = require('three-orbit-controls')(THREE)
-const Bunnies = new Bunny();
-const Lights = new BasicLights();
 
 // Three JS inspector
 // https://chrome.google.com/webstore/detail/threejs-inspector/dnhjfclbfhcbcdfpjaeacomhbdfjbebi?hl=en
@@ -105,7 +104,7 @@ renderer.renderer.shadowMap.enabled = true;
 renderer.renderer.shadowMap.type = PCFSoftShadowMap;
 renderer.renderer.setClearColor(0x000000,1);
 
-// Scene
+// Scene setup
 new OrbitControls(camera);
 scene.add(Bunnies, Lights);
 camera.position.z = 10;

@@ -21,7 +21,7 @@ export default class EffectRenderer {
     this.readBuffer = this.rTarget2;
 
     // Add a render pass
-    this.passes = [];
+    this.passes = new Map();
 
     // now add a renderer, camera and plane to render the textures to
     this.renderer = new WebGLRenderer(options);
@@ -52,7 +52,9 @@ export default class EffectRenderer {
   }
 
   addPass(shader) {
-    this.passes.push(shader);
+    const id = Symbol();
+    this.passes.set(id, shader);
+    return id;
   }
 
   setStore() {
